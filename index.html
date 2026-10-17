@@ -426,6 +426,8 @@ const WORDS = [
 {w:"interpret",ph:"/ɪnˈtɜːprɪt/",pos:"v.",mean:"解释；口译；理解",ex:"How do you interpret this line of the poem?"},
 {w:"justify",ph:"/ˈdʒʌstɪfaɪ/",pos:"v.",mean:"证明……合理；为……辩护",ex:"You need to justify your choice with evidence."}
 ];
+const _extra = "abandonment	n.	放弃\nabnormally	adv.	不正常的\nabsolutely	adv.	当然\nabstract	a.	抽象的\nabuse	n./v.	虐待；滥用\naccomplish	v.	实现\naccountant	n.	会计\naccrue	v.	积累\naccuse	v.	指控\naccustom	v.	使习惯\nachieve	v.	达到，实现\nacquaintance	n.	熟人\nactivate	v.	激活\nacutely	adv.	敏锐地\naddict	v.	上瘾，沉溺\naddress	v.	解决\nadopt	v.	采纳\nadventure	n.	冒险\nadventurer	n.	冒险者\nadverse	a.	相反的，敌对的\nadversely	adv.	不利地\naffection	n.	喜爱\nagenda	n.	议程\naggravate	v.	加重，加剧\nagonize	v.	使痛苦\naid	v.	援助，有助于\nalert	a./v.	机警的；提醒\nalien	a.	陌生的\nallergic	a.	过敏的\nanalytical	a.	分析的\nancient	a.	古代的\nankle	n.	脚踝\nanonymous	a.	匿名的\nanxiety	n.	焦虑\napartment	n.	公寓\napathy	n.	冷漠\napologize	v.	道歉\napplicable	a.	可应用的\napplicant	n.	申请者\nappoint	v.	任命\nappreciative	a.	表示赞赏的，感谢的\napproximately	adv.	大约\narm	v.	装备，武装\narouse	v.	唤起\narrogant	a.	傲慢无礼的\naspect	n.	方面\nassassinate	v.	刺杀，暗杀\nassemble	v.	收集，组装\nassessment	n.	评估，评价\nassociation	n.	联系\nathletic	a.	运动的，运动员的\natmosphere	n.	气氛，空气\nattendant	n.	服务人员\nauthorities	n.	当局\nauthorization	n.	授权\nautomatic	a.	自动的\nauxiliary	a.	辅助的\nawareness	n.	意识\nawesome	a.	极好的，令人敬畏的\nbackup	n.	后补，援助\n";
+for(const _l of _extra.split("\n")){const _p=_l.split("\t");if(_p.length===3)WORDS.push({w:_p[0],pos:_p[1],mean:_p[2]});}
 /* ============ 听力模拟（学习材料，非官方真题） ============ */
 const LISTENING = [
 {id:"L1",title:"校园讲座 · 时间管理",tag:"讲座",
@@ -522,7 +524,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function todayKey(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
 function bumpStudy(){const t=todayKey();if(state.lastDate!==t){const diff=state.lastDate?Math.round((new Date(t)-new Date(state.lastDate))/86400000):99;state.streak=(diff===1)?state.streak+1:1;state.lastDate=t;}save();}
 function learnedCount(){let n=0;for(const k in state.wordStatus){if(state.wordStatus[k]==="known")n++;}return n;}
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 /* ---- 路由 ---- */
 function currentRoute(){const h=location.hash.replace(/^#\/?/,"");return ROUTES.includes(h)?h:"home";}
@@ -583,7 +585,7 @@ function renderHome(){
 }
 
 /* ---- 词库 ---- */
-let UI={wordsMode:"list",queue:[],qIdx:0,quiz:null,detail:null};
+let UI={wordsMode:"list",queue:[],qIdx:0,quiz:null,detail:null,search:"",wordsFilter:"all"};
 function filteredWords(){
   const f=UI.wordsFilter||"all",q=(UI.search||"").trim().toLowerCase();
   return WORDS.filter(w=>{
@@ -595,7 +597,7 @@ function filteredWords(){
     return true;
   });
 }
-function tagOf(st){return st==="known"?['known','已掌握']:st==="learning"?['learn','模糊']:['new','生词'];}
+function tagOf(st){return st==="known"?["known","已掌握"]:st==="learning"?["learn","模糊"]:["new","生词"];}
 function renderWords(){
   if(UI.wordsMode==="quiz"){renderQuiz();return;}
   const fw=filteredWords();
@@ -619,13 +621,13 @@ function renderWords(){
   ${fw.length?fw.map(w=>{
     const st=state.wordStatus[w.w]||"new";const[cls,lab]=tagOf(st);
     return `<div class="worditem" data-open="${esc(w.w)}">
-      <div class="top"><span class="w">${esc(w.w)}</span><span class="ph">${esc(w.ph)}</span><span class="pos">${esc(w.pos)}</span><span class="tag ${cls}">${lab}</span></div>
+      <div class="top"><span class="w">${esc(w.w)}</span><span class="ph">${esc(w.ph||"")}</span><span class="pos">${esc(w.pos)}</span><span class="tag ${cls}">${lab}</span></div>
       <div class="mean">${esc(w.mean)}</div>
-      <div class="ex">${esc(w.ex)}</div>
+      <div class="ex">${esc(w.ex||"")}</div>
       <div class="stat"><button class="ok" data-mark="${esc(w.w)}" data-val="known">已掌握</button><button data-mark="${esc(w.w)}" data-val="learning">模糊</button><button class="no" data-mark="${esc(w.w)}" data-val="new">不认识</button></div>
     </div>`;}).join(""):`<div class="empty">没有符合条件的单词，换个筛选或搜索词。</div>`}
   </div>`;
-  const si=$("#wsearch");if(si){si.value=UI.search||"";si.addEventListener("input",e=>{UI.search=e.target.value;renderWords();});}
+  const si=$("#wsearch");if(si){si.value=UI.search||"";si.addEventListener("input",e=>{UI.search=e.target.value;UI.wordsLimit=300;renderWords();});}
 }
 function showFlash(idx){
   const q=UI.queue;if(!q.length)return;
@@ -633,11 +635,11 @@ function showFlash(idx){
   const w=q[UI.qIdx];
   const st=state.wordStatus[w.w]||"new";
   $("#flashWord").textContent=w.w;
-  $("#flashPhon").textContent=w.ph;
+  $("#flashPhon").textContent=w.ph||"";
   $("#flashPos").textContent="生词卡片 · 点释义查看";
   $("#flashPos2").textContent=w.pos;
   $("#flashMean").textContent=w.mean;
-  $("#flashEx").textContent=w.ex;
+  $("#flashEx").textContent=w.ex||"";
   $("#flashCount").textContent=(UI.qIdx+1)+" / "+q.length+" · 当前："+(st==="known"?"已掌握":st==="learning"?"模糊":"生词");
   $("#flashCard").classList.remove("revealed");
   $("#flashMask").classList.add("show");
@@ -650,7 +652,7 @@ function renderQuiz(){
   <div class="sectiontitle"><h2>词汇测试</h2><span>第 ${qi.i+1}/${qi.words.length} 题 · 选正确释义</span></div>
   <div class="card quiz">
     <div class="qword">${esc(item.w.w)}</div>
-    <div class="qphon">${esc(item.w.ph)} · ${esc(item.w.pos)}</div>
+    <div class="qphon">${esc(item.w.ph||"")} · ${esc(item.w.pos)}</div>
     <div id="qopts">${item.opts.map((o,oi)=>`<button class="qopt" data-qopt="${oi}">${esc(o)}</button>`).join("")}</div>
     <div id="qfeed"></div>
     <div style="margin-top:14px;display:flex;gap:10px">
@@ -783,7 +785,7 @@ function speak(text){if(!("speechSynthesis" in window)){alert("当前浏览器�
 document.addEventListener("click",e=>{
   const nav=e.target.closest("[data-nav]");if(nav){go(nav.dataset.nav);return;}
   const reset=e.target.closest("[data-action=reset]");
-  if(reset){if(confirm("确定重置所有学习进度？此操作不可恢复。")){state=defaultState();save();UI={wordsMode:"list",queue:[],qIdx:0,quiz:null,detail:null,search:"",wordsFilter:"all"};render();}return;}
+  if(reset){if(confirm("确定重置所有学习进度？此操作不可恢复。")){state=defaultState();save();UI={wordsMode:"list",queue:[],qIdx:0,quiz:null,detail:null,search:"",wordsFilter:"all",wordsLimit:300};render();}return;}
   if(e.target.closest("[data-action=backWords]")){UI.wordsMode="list";UI.quiz=null;render();return;}
   if(e.target.closest("[data-action=againQuiz]")){UI.quiz=null;render();return;}
   if(e.target.closest("[data-action=quitQuiz]")){UI.wordsMode="list";UI.quiz=null;render();return;}
@@ -800,7 +802,7 @@ document.addEventListener("click",e=>{
     return;}
   const mark=e.target.closest("[data-mark]");
   if(mark){const w=mark.dataset.mark,val=mark.dataset.val;state.wordStatus[w]=val;bumpStudy();save();renderWords();return;}
-  const fchip=e.target.closest("[data-f]");if(fchip){UI.wordsFilter=fchip.dataset.f;renderWords();return;}
+  const fchip=e.target.closest("[data-f]");if(fchip){UI.wordsFilter=fchip.dataset.f;UI.wordsLimit=300;renderWords();return;}
   const open=e.target.closest("[data-open]");
   if(open){const w=WORDS.find(x=>x.w===open.dataset.open);if(w){UI.queue=[w];showFlash(0);}return;}
   const openl=e.target.closest("[data-openl]");if(openl){UI.detail=openl.dataset.openl;UI.rAnswer=null;render();return;}
@@ -824,7 +826,6 @@ document.addEventListener("click",e=>{
   if(ropt){const[a,oi]=ropt.dataset.ropt.split("-").map(Number);UI.rAnswer=UI.rAnswer||[];UI.rAnswer[a]=oi;
     document.querySelectorAll(`[data-ropt^="${a}-"]`).forEach(b=>{if(+b.dataset.ropt.split("-")[1]!==oi)b.classList.remove("correct");});
     ropt.classList.add("correct");return;}
-  const fm=e.target.closest("[data-mark]");if(fm)return;
 });
 /* 词卡模态 */
 $("#flashMask").addEventListener("click",e=>{if(e.target.id==="flashMask"||e.target.closest("#flashClose")){$("#flashMask").classList.remove("show");return;}
